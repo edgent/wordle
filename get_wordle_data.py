@@ -8,7 +8,7 @@ def generate_csv():
     words = english_words.english_words_lower_set
     words_len5 = [word for word in words if len(word) == 5]
     
-    df = pd.DataFrame(columns=[1,2,3,4,5])
+    df = pd.DataFrame(columns=[x for x in range(5)])
     for word in words_len5:
         df.loc[word] = list(word)
 
