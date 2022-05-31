@@ -1,10 +1,13 @@
 '''
-To do
+To do (Game class)
+- write function & methods for the Game class to generate the best guess after the initial one
+
+To do (old method)
 - only make suggestions that work with the position of the greens/yellows
 - method to work out the best guess (e.g. what will rule out the most alternatives/get the most matches - start with letter frequency)
 - [long run] machine learning approach to selecting words (run model on "real questions" with different decision making frameworks, metric=turns to correct answer)
 
-Analysis
+Analysis to do
 - Most common letters
 - Words containing the most common letters
 - Most common word endings/parts/starts
@@ -26,24 +29,18 @@ import scipy.stats as stats
 ## data prep
 def import_data():
     df = pd.read_csv('wordle_data',index_col=0)
-    df = df.rename(columns={'1':1, '2':2, '3':3, '4':4, '5':5})
+    return df.rename(columns={'1':1, '2':2, '3':3, '4':4, '5':5})
 
-import_data()
+df = import_data()
+df
+df.sort_values(by='letter_frequency_score',ascending=False).iloc[:20,:]
 
-## Making a dictionary of letter frequencies in 5 letter words
-# (just standard frequency (rather than taking sets first) might be better)
-
-
-
-df.sort_values(by='letter_frequency_score',ascending=False)
-
-
-[list(set(x)) for x in df.index]
-list(set('apple'))
-pd.Series(list(''.join(list(df.index)))).value_counts()
 
 ## algorithm
 def generate_options_df(game):
+    '''
+    parameter `game` is a dictionary comprising a green_list (list), yellow_list (string) and grey_list (string) of letters
+    '''
     green_list = game['green_list']
     yellow_list = game['yellow_list']
     grey_list = game['grey_list']
@@ -103,6 +100,15 @@ print_outlook(game)
 print_options(game)
 
 ## Working out a game object / decision engine
+def generate_first_guess(n_top_letter_frequency_scores=20):
+    '''
+    Picks a random starting word from the top N of 5 letter words, ordered by the frequency with which the set of their letters occur in 5 letter words
+    '''
+    df = import_data().sort_values(by='letter_frequency_score',ascending=False).iloc[:n_top_letter_frequency_scores,:]
+    return df.sample(1).index[0]
+
+generate_first_guess(n_top_letter_frequency_scores=20)
+
 class Game:
     def __init__(self, answer):
         self.answer = answer.lower()
@@ -171,58 +177,7 @@ game = Game('plier')
 game.guesses
 game.answer
 game.submit_guess('plier')
-
 game.letter_lists
 game.current_round
 game.guess_count
 
-lst = []
-lst.append('apple')
-lst
-
-class Game:
-    def __init__(self, answer):
-        self.answer = answer 
-        self.guess_history = []
-
-    def add_guess(self,guess):
-        self.guess_history.append(guess)
-
-
-game = Game('apple')
-game.answer
-game.guess_history
-game.add_guess('trout')
-game.guess_history.append('trout')
-
-class Circle:
-    def __init__(self, radius):
-        self.radius = radius
-
-class Circle:
-    def __init__(self, radius):
-        self._radius = radius
-
-    def _get_radius(self):
-        print("Get radius")
-        return self._radius
-
-    def _set_radius(self, value):
-        print("Set radius")
-        self._radius = value
-
-    def _del_radius(self):
-        print("Delete radius")
-        del self._radius
-
-    radius = property(
-        fget=_get_radius,
-        fset=_set_radius,
-        fdel=_del_radius,
-        doc="The radius property."
-    )
-
-circle = Circle(40)
-circle.radius
-circle.radius = 50
-circle._get_radius()

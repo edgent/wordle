@@ -4,7 +4,7 @@ import pandas as pd
 import scipy.stats as stats
 import itertools
 
-def prepare_data():
+def generate_csv():
     words = english_words.english_words_lower_set
     words_len5 = [word for word in words if len(word) == 5]
     
@@ -14,7 +14,7 @@ def prepare_data():
 
     words_len5_frequencies = pd.Series(words_len5).apply(lambda x: word_frequency(x,'en'))
 
-    df['frequency_ranks'] = words_len5_frequencies.apply(lambda x: stats.percentileofscore(words_len5_frequencies,x)).values
+    df['word_frequency_rank'] = words_len5_frequencies.apply(lambda x: stats.percentileofscore(words_len5_frequencies,x)).values
 
     letter_frequency_df = pd.Series(itertools.chain.from_iterable([list(set(x)) for x in df.index]),name='letter_frequency').value_counts()
     letter_frequency_dict = letter_frequency_df.to_dict()
@@ -24,11 +24,6 @@ def prepare_data():
         for letter in set(word):
             score += letter_frequency_dict[letter]
         df.loc[word,'letter_frequency_score']=score
-
-def save_data_to_csv():
     df.to_csv('wordle_data')
 
-prepare_data()
-save_data_to_csv()
-
-words
+generate_csv()
