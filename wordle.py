@@ -108,67 +108,89 @@ print_outlook(game)
 print_options(game)
 
 ## Working out a game object / decision engine
-def generate_first_guess(n_top_letter_frequency_scores=20):
-    '''
-    Picks a random starting word from the top N of 5 letter words, ordered by the frequency with which the set of their letters occur in 5 letter words
-    '''
-    df = import_wordle_data().sort_values(by='letter_frequency_score',ascending=False).iloc[:n_top_letter_frequency_scores,:]
-    return df.sample(1).index[0]
+
 
 generate_first_guess(n_top_letter_frequency_scores=20)
 
 
 #test
-letter_list_dictionary['green']
+class Guesser:
+    def __init__(self) -> None:
+        pass
+    
+    def generate_first_guess(self,n_top_letter_frequency_scores=20):
+            '''
+            Picks a random starting word from the top N of 5 letter words, ordered by the frequency with which the set of their letters occur in 5 letter words
+            '''
+            df = import_wordle_data().sort_values(by='letter_frequency_score',ascending=False).iloc[:n_top_letter_frequency_scores,:]
+            return df.sample(1).index[0]
 
-def generate_guess(letter_list_dictionary):
-    df_filtered = import_wordle_data()
-    dict = letter_list_dictionary
-    green_dict = dict['green']
-    grey_list, yellow_list = dict['grey'], dict['yellow']
-    print(green_dict, grey_list, yellow_list)
-    # need to work out how to exclude yellows in positions that have been guessed before
-    # if the answer is 'pears' and i guess 'pump', the first P will go green and the 2nd will go grey. We want to make sure we don't exclude words that contain p.
-    for n in green_dict:
-        letter = green_dict[n]
-        print(n, letter)
-        # if key == 0: # if this is the first iteration step, make a copy of the main dataframe
-        #     df_filtered = df.copy() # df is the wordle_data dataframe imported
-        if letter == '': # if no direct matching green letter, check if it matches the yellow letter list
-            # for each word in the list, check if it contains a grey letter. Mark if it does and prepare to drop.
-            df_filtered['grey_match_'+str(n)] = df_filtered[n].apply(lambda x: x in grey_list) # 
-            # for each word in the list, check if it contains a yellow letter.
-            df_filtered['yellow_match_'+str(n)] = df_filtered[n].apply(lambda x: x in yellow_list) # make a new column to flag these matches
-            continue 
-        df_filtered = df_filtered.loc[df_filtered[n]==letter].copy() # filter the word list for just ones that match the greenlist
-        print(df_filtered.shape)
 
-        # get list of column names where we can identify yellow matches and exclude grey options
-    match_cols_yellow = [x for (x) in df_filtered.columns if 'yellow_match' in str(x)] # what if yellow list is empty?
-    match_cols_grey = [x for (x) in df_filtered.columns if 'grey_match' in str(x)]
+    def generate_options(self,letter_list_dictionary):
+        df_filtered = import_wordle_data()
+        dict = letter_list_dictionary
+        green_dict = dict['green']
+        grey_list, yellow_list = dict['grey'], dict['yellow']
+        print(green_dict, grey_list, yellow_list)
+        # need to work out how to exclude yellows in positions that have been guessed before
+        # if the answer is 'pears' and i guess 'pump', the first P will go green and the 2nd will go grey. We want to make sure we don't exclude words that contain p.
+        for n in green_dict:
+            letter = green_dict[n]
+            print(n, letter)
+            # if key == 0: # if this is the first iteration step, make a copy of the main dataframe
+            #     df_filtered = df.copy() # df is the wordle_data dataframe imported
+            if letter == '': # if no direct matching green letter, check if it matches the yellow letter list
+                # for each word in the list, check if it contains a grey letter. Mark if it does and prepare to drop.
+                df_filtered['grey_match_'+str(n)] = df_filtered[n].apply(lambda x: x in grey_list) # 
+                # for each word in the list, check if it contains a yellow letter.
+                df_filtered['yellow_match_'+str(n)] = df_filtered[n].apply(lambda x: x in yellow_list) # make a new column to flag these matches
+                continue 
+            df_filtered = df_filtered.loc[df_filtered[n]==letter].copy() # filter the word list for just ones that match the greenlist
+            print(df_filtered.shape)
 
-    # exclude options that contain fewer yellow letters than we have (if we have them) and exclude options that contain grey letters
-    if len(yellow_list) > 0:
-        options_df = df_filtered.loc[np.sum(df_filtered[match_cols_yellow],axis=1)>=len(yellow_list)].copy()
-    else:
-        options_df = df_filtered.copy()
+            # get list of column names where we can identify yellow matches and exclude grey options
+        match_cols_yellow = [x for (x) in df_filtered.columns if 'yellow_match' in str(x)] # what if yellow list is empty?
+        match_cols_grey = [x for (x) in df_filtered.columns if 'grey_match' in str(x)]
 
-    options_df = options_df.loc[~df_filtered[match_cols_grey].any(axis=1)].copy() # exclude options that contain grey letters
-    return options_df
+        # exclude options that contain fewer yellow letters than we have (if we have them) and exclude options that contain grey letters
+        if len(yellow_list) > 0:
+            options_df = df_filtered.loc[np.sum(df_filtered[match_cols_yellow],axis=1)>=len(yellow_list)].copy()
+        else:
+            options_df = df_filtered.copy()
+
+        options_df = options_df.loc[~df_filtered[match_cols_grey].any(axis=1)].copy() # exclude options that contain grey letters
+        return options_df.sort_values(by='letter_frequency_score',ascending=False)
+
+    def generate_guess(self,letter_list_dictionary,method='letter_score'):
+        if method == 'letter_score':
+            options_df = self.generate_options(letter_list_dictionary)
+            guess = options_df.sort_values(by='letter_frequency_score',ascending=False).index[0]
+            return guess
+        else:
+            return None
+    def test(self):
+        print('hello world')
+
+ed = Guesser()
+ed.test()
+ed.generate_first_guess()
+
+
 
 letter_list_dictionary = {
-    'green':{0:'m',1:'a',2:'',3:'o',4:'r'},
+    'green':{0:'',1:'r',2:'e',3:'a',4:''},
     'yellow':set(''),
-    'yellow_position_history':{'p': [0, 3], 'e': [1, 2]},
-    'grey':set('teslj')
+    'yellow_position_history':{'': [], '': []},
+    'grey':set('istd')
 }
-generate_guess(letter_list_dictionary)[['word_frequency_rank','letter_frequency_score']]
+generate_first_guess()
+generate_guess(letter_list_dictionary)[['word_frequency_rank','letter_frequency_score']].sort_values(by='letter_frequency_score', ascending=False)[:20]
 
 # .sort_values(by='letter_frequency_score',ascending=False)
         
 
 class Game:
-    def __init__(self, answer):
+    def __init__(self, answer) -> None:
         self.answer = answer.lower()
         self.current_round = 1
         self.guess_count = 0
@@ -182,6 +204,8 @@ class Game:
             'grey':set() # going to be a set
         }
         self.guesses = {x:'' for x in range(5)} # empty dictionary keys 1 to 5 to populate with guesses - effectively the game board
+
+    
 
     def evaluate_guess(self, word):
         word = word.lower()
@@ -231,17 +255,48 @@ class Game:
         self.latest_guess = word
         print('Guess submitted')
         self.evaluate_guess(word)
+
+    def autoplay_single_round(
+        self,
+        Guesser # a Guesser class which we will instantiate and use to make guesses
+    ):
+        auto = Guesser()
+        # play first round
+        if True in [self.game_lost, self.game_won]:
+            return 'Game has ended'
+
+        if self.guess_count == 0:
+                self.submit_guess(auto.generate_first_guess())
+        else:
+            self.submit_guess(auto.generate_guess(self.letter_lists))
         
+    def autoplay_whole_game(
+        self,
+        Guesser
+    ):
+        while self.game_lost == False and self.game_won == False:
+            self.autoplay_single_round(Guesser)
+        else:
+            return 'Game has ended'
 
-g = {x+1:'' for x in range(5)}
-g[1], g[3] = 'a','p'
-list(g.values()) == list('apple')
+        
+game = Game('manor')
+game.autoplay_single_round(Guesser)
+game.autoplay_whole_game(Guesser)
+game.game_won
+game.guess_count
+game.current_round
 
 
-game = Game('apple')
+game = Game('manor')
+game.submit_guess(generate_first_guess()) # first guess
+(generate_options(game.letter_lists))
+game.submit_guess('adorn')
+game.guesses
 game.guesses
 game.answer
-game.submit_guess('peeps')
+
+
 game.letter_lists
 game.current_round
 game.guess_count
