@@ -3,6 +3,7 @@ import english_words
 import pandas as pd
 import scipy.stats as stats
 import itertools
+import numpy as np
 
 def generate_csv():
     words = english_words.english_words_lower_set
@@ -25,5 +26,10 @@ def generate_csv():
             score += letter_frequency_dict[letter]
         df.loc[word,'letter_frequency_score']=score
     df.to_csv('wordle_data')
+
+def import_wordle_data():
+    df = pd.read_csv('wordle_data',index_col=0)
+    return df.rename(columns={str(x):x for x in range(5)})
+
 
 generate_csv()
