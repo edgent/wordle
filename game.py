@@ -37,9 +37,9 @@ class Game:
                 print(f'{letter} is somewhere else in the answer')
                 self.letter_lists['yellow'].add(letter)
                 try:
-                    self.letter_lists['yellow_position_history'][letter].append(i)
+                    self.letter_lists['yellow_position_history'][i].append(letter)
                 except:
-                    self.letter_lists['yellow_position_history'][letter] = [i]
+                    self.letter_lists['yellow_position_history'][i] = [letter]
             
             else:
                 print(f'{letter} is not in the answer')
@@ -64,7 +64,7 @@ class Game:
         self.current_round += 1
         self.guess_count += 1
         self.latest_guess = word
-        print('Guess submitted')
+        print(f'Guess "{word}" submitted')
         self.evaluate_guess(word)
 
     def autoplay_single_round(
@@ -89,3 +89,4 @@ class Game:
             self.autoplay_single_round()
         else:
             print('Game has ended')
+
