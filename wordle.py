@@ -25,30 +25,6 @@ Analysis to do
 '''
 
 
-ans = 'enter'
-guess = 'hench'
-greens = wordle.letter_lists['green']
-yellows = 
-[green[x for x in greens if greens[x] == ''] # unguessed greens
-
-# Check your answer for greens & produce "answer - greens"
-# Run through remaining guess letters - if you hit a yellow, update "answer - greens - yellows"
-# 
-
-guess[2]
-ans[2]
-
-
-
-for i,letter in enumerate(ans):
-    print(i,letter)
-    greens[i]
-
-
-
-# is the letter i guessed in the list of correct unguessed letters?
-
-
 import wordle_data
 import pandas as pd
 import numpy as np
@@ -110,20 +86,28 @@ update_stats_df()
 stats_df.transpose()
 
 random.choice(['point','graze','faint','scour','bring','sting','upend'])
-
+reload(game)
 wordle = game.Game(random.choice(['point','graze','faint','scour','bring','sting','upend']))
+wordle = game.Game('faint')
 ed = guesser.Guesser()
-wordle.letter_lists
+
 wordle.guesses
-wordle.submit_guess('clear')
+wordle.submit_guess('alone')
+wordle.letter_lists
 update_stats_df()
-wordle.submit_guess('occur')
+
+wordle.submit_guess('grant')
 update_stats_df()
-wordle.submit_guess('')
+wordle.submit_guess('saint')
 update_stats_df()
+wordle.submit_guess('paint')
+update_stats_df()
+wordle.submit_guess('faint')
 
 stats_df.transpose()
-ed.generate_enriched_options(wordle.letter_lists)
+ed.generate_enriched_options(wordle.letter_lists).sort_values(by='unattempted_letters_frequency_score',ascending=False)
+wordle.letter_lists
+wordle.guesses
 
 dimensions = ['unattempted_letters','word_frequency_rank','count_unattempted_letters', 'last_2_letter_frequency', 'last_3_letter_frequency', 'middle_3_letter_frequency', 'unattempted_letters_frequency_score']
 df = ed.generate_enriched_options(wordle.letter_lists)[dimensions].sort_values(by='unattempted_letters_frequency_score',ascending=False) # unattempted_letters_frequency_score
