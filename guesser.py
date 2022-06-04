@@ -78,15 +78,18 @@ class Guesser:
         green_list = letter_list_dictionary['green']
         yellow_list = letter_list_dictionary['yellow']
         wordlist = pd.Series(options_df.index,name='wordlist')
-        word_df = pd.DataFrame(index=wordlist)
+        word_df = options_df[['word_frequency_rank']] # want to include word frequency
+        # word_df = pd.DataFrame(index=wordlist)
         word_df['last_2_letters'] = wordlist.apply(lambda x: x[-2:]).values
         word_df['last_3_letters'] = wordlist.apply(lambda x: x[-3:]).values
         word_df['middle_3_letters'] = wordlist.apply(lambda x: x[1:4]).values
         word_df['unattempted_letters'] = wordlist.apply(lambda x: set(x).difference(set(list(green_list.values()) + list(yellow_list)))).values
-        word_df['count_unattempted_letters'] = word_df['unattempted_letters'].apply(lambda x: len(x))
-        word_df['last_2_letter_frequency'] = word_df[['last_2_letters']].merge(word_df['last_2_letters'].value_counts(normalize=True),left_on='last_2_letters',right_index=True).iloc[:,2]
-        word_df['last_3_letter_frequency'] = word_df[['last_3_letters']].merge(word_df['last_3_letters'].value_counts(normalize=True),left_on='last_3_letters',right_index=True).iloc[:,2]
-        word_df['middle_3_letter_frequency'] = word_df[['middle_3_letters']].merge(word_df['middle_3_letters'].value_counts(normalize=True),left_on='middle_3_letters',right_index=True).iloc[:,2]
+        # word_df['count_unattempted_letters'] = pd.Series(word_df['unattempted_letters']).apply(lambda x: len(x)).values
+        word_df['count_unattempted_letters'] = word_df['unattempted_letters'].apply(lambda x: len(x)).values
+        
+        word_df['last_2_letter_frequency'] = word_df[['last_2_letters']].merge(pd.DataFrame(word_df['last_2_letters'].value_counts(normalize=True)),left_on='last_2_letters',right_index=True).iloc[:,2]
+        word_df['last_3_letter_frequency'] = word_df[['last_3_letters']].merge(pd.DataFrame(word_df['last_3_letters'].value_counts(normalize=True)),left_on='last_3_letters',right_index=True).iloc[:,2]
+        word_df['middle_3_letter_frequency'] = word_df[['middle_3_letters']].merge(pd.DataFrame(word_df['middle_3_letters'].value_counts(normalize=True)),left_on='middle_3_letters',right_index=True).iloc[:,2]
         letter_freqs = pd.Series(
             [item for set in list(wordlist.apply(lambda x: set(x).difference(set(list(green_list.values()) + list(yellow_list))))) \
             for item in set]

@@ -50,14 +50,28 @@ manual_game = {
 
 wordle = game.Game('phase')
 ed = guesser.Guesser()
-wordle.submit_guess('lapse')
-ed.generate_enriched_options(wordle.letter_lists).iloc[:,-5:].sort_values(by='unattempted_letters_frequency_score',ascending=False)
+wordle.submit_guess('dense')
+ed.generate_options(wordle.letter_lists)
+ed.generate_enriched_options(wordle.letter_lists)
+df = ed.generate_enriched_options(wordle.letter_lists).iloc[:,-5:].sort_values(by='unattempted_letters_frequency_score',ascending=False) # unattempted_letters_frequency_score
+
+dimensions = ['word_frequency_rank','count_unattempted_letters', 'last_2_letter_frequency', 'last_3_letter_frequency', 'middle_3_letter_frequency', 'unattempted_letters_frequency_score']
+ed.generate_options(wordle.letter_lists)
+ed.generate_enriched_options(wordle.letter_lists)
+df.sort_values(by='last_2_letter_frequency',ascending=False)[:30]
+df.loc[df['unattempted_letters_frequency_score']>0.34].sort_values(by='middle_3_letter_frequency',ascending=False)[:30]
+np.std(ed.generate_enriched_options(wordle.letter_lists).iloc[:,-5:],axis=0)
+
+df = ed.generate_enriched_options(wordle.letter_lists)
+df[['last_2_letters']].merge(pd.DataFrame(df['last_2_letters'].value_counts(normalize=True)),left_on='last_2_letters',right_index=True).iloc[:,2]
 
 wordle.guesses
 wordle.letter_lists
 
-ed.generate_options(wordle.letter_lists)
+
 wordlist = pd.Series(ed.generate_options(wordle.letter_lists).index,name='wordlist')
+ed.generate_options(wordle.letter_lists)[['word_frequency_rank']].merge()
+
 pd.DataFrame(index=wordlist)
 word_df = pd.DataFrame(index=ed.generate_options(wordle.letter_lists).index)
 word_df['last_2_letters'] = wordlist.apply(lambda x: x[-2:]).values
