@@ -4,10 +4,11 @@ import pandas as pd
 import scipy.stats as stats
 import itertools
 import numpy as np
+not_words = ['solon','somal','paula',"can't",'tracy','sarah','qatar','helen','perez','omaha','caleb','colby',"we'll",'damon','draco','stacy','alice',"don't",'benny']
 
-def generate_csv():
+def generate_wordle_data():
     words = english_words.english_words_lower_set
-    words_len5 = [word for word in words if len(word) == 5]
+    words_len5 = [word for word in words if len(word) == 5 and word not in not_words]
     
     df = pd.DataFrame(columns=[x for x in range(5)]) # 5 columns for each letter in the answer
     for word in words_len5:
@@ -25,11 +26,15 @@ def generate_csv():
         for letter in set(word):
             score += letter_frequency_dict[letter]
         df.loc[word,'letter_frequency_score']=score
-    df.to_csv('wordle_data')
+    return df
+    
+def save_to_csv(dataframe):
+    dataframe.to_csv('wordle_data')
 
 def import_wordle_data():
     df = pd.read_csv('wordle_data',index_col=0)
     return df.rename(columns={str(x):x for x in range(5)})
 
 
-generate_csv()
+# list(generate_wordle_data().index)
+save_to_csv(generate_wordle_data())

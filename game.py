@@ -53,7 +53,8 @@ class Game:
                     self.letter_lists['yellow_position_history'][i] = [letter]
                 answer_working.remove(letter) # remove the letter from the potential answer list in case the same letter is guessed multiple times
             else:
-                self.letter_lists['grey'].add(letter)
+                if letter not in self.letter_lists['yellow']: # if we have the same letter twice (e.g. "o" in "solon" when trying to get "scour"), we don't want it to reach the grey list
+                    self.letter_lists['grey'].add(letter)
 
         ##### this block was removed on 4/06/22 and replaced with above. leaving temporarily in case needed.
         # for i in range(len(self.answer)):

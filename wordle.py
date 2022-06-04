@@ -23,7 +23,6 @@ Analysis to do
 - do they under-index on words with double letters (e.g. "pill"?)
 - can we scrape results from people online and show what tends to make rounds difficult?
 '''
-not_words = ['solon','somal','paula',"can't"]
 
 import wordle_data
 import pandas as pd
@@ -40,12 +39,13 @@ reload(game)
 reload(guesser)
 
 manual_game = {
-    'green': {0: 'p', 1: '', 2: '', 3: 's', 4: 'e'}, 
-    'yellow': set('a'), 
-    'yellow_position_history': {0:['a'],1:['a']}, 
-    'grey': set('nir')
+    'green': {0: '', 1: '', 2: '', 3: '', 4: ''}, 
+    'yellow': set('tr'), 
+    'yellow_position_history': {0:['h'],1:[''],2:['t','r'],3:[''],4:['r','t']}, 
+    'grey': set('aleus')
     }
 
+ed.generate_enriched_options(manual_game).sort_values(by=['last_2_letter_frequency','unattempted_letters_frequency_score'],ascending=[False,False])
 ### attempting to codify logic
 ## answer = "Phase"
 # 1. first attempt is just about getting information - go for high frequency score coupled with common 2 letter ending --> hater
@@ -94,12 +94,13 @@ stats_df.transpose()
 
 reload(game)
 wordle = game.Game(random.choice(['point','graze','faint','scour','bring','sting','upend']))
-wordle = game.Game('bring')
+wordle = game.Game('scour')
 game.Game(random.choice(['point','graze','faint','scour','bring','sting','upend'])).autoplay_whole_game()
 wordle.guesses
 wordle.answer
 reload(guesser)
 ed = guesser.Guesser()
+
 
 
 
@@ -113,7 +114,7 @@ wordle.autoplay_single_round()
 reload_stats_df()
 update_stats_df()
 stats_df.transpose()
-wordle.submit_guess('share')
+wordle.submit_guess('solon')
 update_stats_df()
 wordle.submit_guess('irony')
 update_stats_df()
