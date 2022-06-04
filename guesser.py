@@ -23,6 +23,7 @@ class Guesser:
         return df.sample(1).index[0]
     
     def generate_options(self,letter_list_dictionary):
+        # filters all 5 letter words to just the ones that fit with the previously guessed letters
         df_filtered = self.wordle_data.copy()
         dic = letter_list_dictionary
         green_dic = dic['green']
@@ -71,6 +72,27 @@ class Guesser:
         options_df = options_df.loc[~df_filtered[match_cols_grey].any(axis=1)].copy() # exclude options that contain grey letters
         options_df = options_df.loc[~df_filtered[match_cols_yellow_previously].any(axis=1)].copy()
         return options_df.sort_values(by='letter_frequency_score',ascending=False)
+
+    def generate_enriched_options(self,letter_list_dictionary):
+        options_df = self.generate_options(letter_list_dictionary)
+        green_list = letter_list_dictionary['green']
+        yellow_list = letter_list_dictionary['yellow']
+        wordlist = pd.Series(options_df.index,name='wordlist')
+        word_df = pd.DataFrame(index=wordlist)
+        word_df['last_2_letters'] = wordlist.apply(lambda x: x[-2:]).values
+        word_df['last_3_letters'] = wordlist.apply(lambda x: x[-3:]).values
+        word_df['middle_3_letters'] = wordlist.apply(lambda x: x[1:4]).values
+        word_df['unattempted_letters'] = wordlist.apply(lambda x: set(x).difference(set(list(green_list.values()) + list(yellow_list)))).values
+        word_df['count_unattempted_letters'] = word_df['unattempted_letters'].apply(lambda x: len(x))
+        word_df['last_2_letter_frequency'] = word_df[['last_2_letters']].merge(word_df['last_2_letters'].value_counts(normalize=True),left_on='last_2_letters',right_index=True).iloc[:,2]
+        word_df['last_3_letter_frequency'] = word_df[['last_3_letters']].merge(word_df['last_3_letters'].value_counts(normalize=True),left_on='last_3_letters',right_index=True).iloc[:,2]
+        word_df['middle_3_letter_frequency'] = word_df[['middle_3_letters']].merge(word_df['middle_3_letters'].value_counts(normalize=True),left_on='middle_3_letters',right_index=True).iloc[:,2]
+        letter_freqs = pd.Series(
+            [item for set in list(wordlist.apply(lambda x: set(x).difference(set(list(green_list.values()) + list(yellow_list))))) \
+            for item in set]
+        ).value_counts(normalize=True).to_dict()
+        word_df['unattempted_letters_frequency_score'] = word_df['unattempted_letters'].apply(lambda x: sum([letter_freqs[letter] for letter in x]))
+        return word_df
 
     def generate_guess(self,letter_list_dictionary,method='letter_score'):
         if method == 'letter_score':

@@ -50,13 +50,15 @@ manual_game = {
 
 wordle = game.Game('phase')
 ed = guesser.Guesser()
-wordle.submit_guess('anise')
-ed.generate_options(wordle.letter_lists)[['word_frequency_rank','letter_frequency_score']]
+wordle.submit_guess('lapse')
+ed.generate_enriched_options(wordle.letter_lists).iloc[:,-5:].sort_values(by='unattempted_letters_frequency_score',ascending=False)
+
 wordle.guesses
 wordle.letter_lists
 
-
+ed.generate_options(wordle.letter_lists)
 wordlist = pd.Series(ed.generate_options(wordle.letter_lists).index,name='wordlist')
+pd.DataFrame(index=wordlist)
 word_df = pd.DataFrame(index=ed.generate_options(wordle.letter_lists).index)
 word_df['last_2_letters'] = wordlist.apply(lambda x: x[-2:]).values
 word_df['last_3_letters'] = wordlist.apply(lambda x: x[-3:]).values
@@ -67,8 +69,8 @@ word_df['last_3_letter_frequency'] = word_df[['last_3_letters']].merge(word_df['
 word_df['middle_3_letter_frequency'] = word_df[['middle_3_letters']].merge(word_df['middle_3_letters'].value_counts(normalize=True),left_on='middle_3_letters',right_index=True).iloc[:,2]
 
 # find most common letters from available words (excluding green/yellow)
-set('apple').difference('tease')
-set('phase').difference(set(list(wordle.letter_lists['green'].values()) + list(wordle.letter_lists['yellow'])))
+
+
 word_df['letters_not_green_or_yellow'] = wordlist.apply(lambda x: set(x).difference(set(list(wordle.letter_lists['green'].values()) + list(wordle.letter_lists['yellow'])))).values
 word_df['count_letters_not_green_or_yellow'] = wordlist.apply(lambda x: len(set(x).difference(set(list(wordle.letter_lists['green'].values()) + list(wordle.letter_lists['yellow']))))).values
 ## PICK UP FROM HERE - write method in Guesser to do this stuff automatically
@@ -76,12 +78,14 @@ letter_freqs = pd.Series(
     [item for set in list(wordlist.apply(lambda x: set(x).difference(set(list(wordle.letter_lists['green'].values()) + list(wordle.letter_lists['yellow']))))) \
         for item in set]
 ).value_counts(normalize=True).to_dict()
-
+word_df['letters_not_green_or_yellow'].apply(lambda x: sum([letter_freqs[letter] for letter in x]))
+[x for x in set('apple')]
 def get_letter_frequency_scores(set,dic):
     return sum([dic[x] for x in set])
 
 word_df['new_letters_frequency_score'] = word_df['letters_not_green_or_yellow'].apply(lambda x: get_letter_frequency_scores(x,letter_freqs))
 word_df
+pd.set_option('display.max_columns',100)
 
 ## some options
 # - find the most common word patterns / endings 
