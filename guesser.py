@@ -97,18 +97,18 @@ class Guesser:
         word_df['unattempted_letters_frequency_score'] = word_df['unattempted_letters'].apply(lambda x: sum([letter_freqs[letter] for letter in x]))
         return word_df
 
-    def generate_guess(self,letter_list_dictionary,method='letter_score'):
-        if method == 'letter_score':
-            options_df = self.generate_options(letter_list_dictionary)
-
-            if len(options_df) == 0:
-                print('No options available')
-                return None
-            else:
-                if len(options_df) <= 50:
-                    guess = options_df.sort_values(by='word_frequency_rank',ascending=False).index[0]
-                else:
-                    guess = options_df.sort_values(by='letter_frequency_score',ascending=False).index[0]
-                return guess
-        else:
+    def generate_guess(self,letter_list_dictionary,method='last_2_letters',sample_n=1):
+        options_df = self.generate_enriched_options(letter_list_dictionary)
+        if len(options_df) == 0:
+            print('No options found')
             return None
+        elif method == 'letter_score':
+            if len(options_df) <= 50:
+                guess = options_df.sort_values(by='word_frequency_rank',ascending=False)[:sample_n].sample(1).index[0]
+            else:
+                guess = options_df.sort_values(by='letter_frequency_score',ascending=False)[:sample_n].sample(1).index[0]
+            return guess
+        elif method == 'letter_frequency':
+            return options_df.sort_values(by='unattempted_letters_frequency_score',ascending=False)[:sample_n].sample(1).index[0]
+        else:
+            return options_df.sort_values(by=[method,'unattempted_letters_frequency_score'],ascending=[False,False])[:sample_n].sample(1).index[0]

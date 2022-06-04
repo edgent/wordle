@@ -9,12 +9,12 @@ class Game:
         self.game_won = False
         self.game_lost = False
         self.letter_lists = {
-            'green':{x:'' for x in range(5)}, # empty dictionary with keys 1 through 5
+            'green':{x:'' for x in range(5)}, # empty dictionary with keys 1 through 6 to represent 6 turns in wordle
             'yellow':set(), # ** to do ** this should really be a list, since you can have more than one yellow of the same letter
             'yellow_position_history':{},
             'grey':set() # going to be a set
         }
-        self.guesses = {x:'' for x in range(5)} # empty dictionary keys 1 to 5 to populate with guesses - effectively the game board
+        self.guesses = {x:'' for x in range(6)} # empty dictionary keys 1 to 5 to populate with guesses - effectively the game board
 
     
 
@@ -84,7 +84,7 @@ class Game:
             print(f'Game won in {self.guess_count} turns!')
         
         # checking if the game is lost
-        elif (self.game_won == False) and (self.guess_count >= 5):
+        elif (self.game_won == False) and (self.guess_count >= 6):
             self.game_lost = True
             print('Game over, guess limit reached')
 
@@ -105,16 +105,28 @@ class Game:
         self
         # ,Guesser # a Guesser class which we will instantiate and use to make guesses
     ):
-        auto = Guesser()
+        auto = Guesser() # imported globally at the top
         # play first round
         if True in [self.game_lost, self.game_won]:
             return 'Game has ended'
 
-        if self.guess_count == 0:
-                self.submit_guess(auto.generate_first_guess())
-        else:
-            self.submit_guess(auto.generate_guess(self.letter_lists))
+        # if self.guess_count == 0:
+        #     self.submit_guess(auto.generate_guess)
+        # else:
+        #     self.submit_guess(auto.generate_guess(self.letter_lists))
         
+        # v2: if fewer then 5, go by popularity. If 2nd go, go by last 2 letters. If 3rd go, go by middle 3. 
+        elif len(auto.generate_options(self.letter_lists)) <= 5:
+            self.submit_guess(
+                auto.generate_guess(self.letter_lists,method='word_frequency_rank')
+            )
+        elif self.guess_count == 1: # 2nd guess
+            self.submit_guess(auto.generate_guess(self.letter_lists,method='last_2_letter_frequency'))
+        elif self.guess_count == 2: # 2nd guess
+            self.submit_guess(auto.generate_guess(self.letter_lists,method='middle_3_letter_frequency'))
+        else:
+            self.submit_guess(auto.generate_guess(self.letter_lists,method='letter_frequency'))
+
     def autoplay_whole_game(
         self 
         #, Guesser

@@ -1,11 +1,11 @@
 '''
 To do (Game class)
-- 
+- why does guessing "solon" when the answer is "scour" make it run out of options?
 - handle exception when no options appear to exist
 - make it work for double letters (e.g. abbey) https://nerdschalk.com/wordle-same-letter-twice-rules-explained-how-does-it-work/
   - guessing "occur" when the answer is "scour" puts the 2nd "c" on the yellow list 
   - guessing 'lease' when the answer is 'phase' currently evaluates that the first 'e' is somewhere else in the answer - but the 2nd e takes that slot
-- remove proper nouns from word list
+- remove proper nouns and punctuation from word list
 - improve guessing algorithm
   - [ML approach] make a dumb random guessing method, use this to build a dataset and capture all the dimensions relating to the choice that could feed a model (e.g. number of possible choices with that ending, number of letters known so far, guess number)
 
@@ -23,7 +23,7 @@ Analysis to do
 - do they under-index on words with double letters (e.g. "pill"?)
 - can we scrape results from people online and show what tends to make rounds difficult?
 '''
-
+not_words = ['solon','somal','paula',"can't"]
 
 import wordle_data
 import pandas as pd
@@ -70,11 +70,14 @@ manual_game = {
 # 
 
 # prep to get stats about each guess attempt
-cols = list(ed.generate_enriched_options(wordle.letter_lists).iloc[:,-4:].columns)
-std_cols = [x+'_std' for x in cols]
-max_cols = [x+'_max' for x in cols]
-stats_df = pd.DataFrame(columns=(std_cols + max_cols + ['count_options']))
 
+
+
+def reload_stats_df():
+    cols = list(ed.generate_enriched_options(wordle.letter_lists).iloc[:,-4:].columns)
+    std_cols = [x+'_std' for x in cols]
+    max_cols = [x+'_max' for x in cols]
+    stats_df = pd.DataFrame(columns=(std_cols + max_cols + ['count_options']))
 
 def update_stats_df():
     stats_df.loc[wordle.current_round] = np.nan
@@ -82,35 +85,51 @@ def update_stats_df():
     stats_df.loc[wordle.current_round][max_cols] = np.max(ed.generate_enriched_options(wordle.letter_lists)[cols],axis=0).values
     stats_df.loc[wordle.current_round]['count_options'] = len(ed.generate_options(wordle.letter_lists))
 
+reload_stats_df()
+
 update_stats_df()
 stats_df.transpose()
 
-random.choice(['point','graze','faint','scour','bring','sting','upend'])
+
+
 reload(game)
 wordle = game.Game(random.choice(['point','graze','faint','scour','bring','sting','upend']))
-wordle = game.Game('faint')
+wordle = game.Game('bring')
+game.Game(random.choice(['point','graze','faint','scour','bring','sting','upend'])).autoplay_whole_game()
+wordle.guesses
+wordle.answer
+reload(guesser)
 ed = guesser.Guesser()
 
-wordle.guesses
-wordle.submit_guess('alone')
-wordle.letter_lists
-update_stats_df()
 
-wordle.submit_guess('grant')
+
+wordle.guesses
+wordle.letter_lists
+wordle.answer
+ed.generate_options(wordle.letter_lists)
+
+wordle.autoplay_single_round()
+
+reload_stats_df()
 update_stats_df()
-wordle.submit_guess('saint')
+stats_df.transpose()
+wordle.submit_guess('share')
 update_stats_df()
-wordle.submit_guess('paint')
+wordle.submit_guess('irony')
 update_stats_df()
-wordle.submit_guess('faint')
+wordle.submit_guess('grind')
+update_stats_df()
+wordle.submit_guess('bring')
 
 stats_df.transpose()
-ed.generate_enriched_options(wordle.letter_lists).sort_values(by='unattempted_letters_frequency_score',ascending=False)
+ed.generate_enriched_options(wordle.letter_lists).sort_values(by=['unattempted_letters_frequency_score','unattempted_letters_frequency_score'],ascending=[False,False])
+ed.generate_guess(wordle.letter_lists,method='word_frequency_rank')
 wordle.letter_lists
 wordle.guesses
+df
 
 dimensions = ['unattempted_letters','word_frequency_rank','count_unattempted_letters', 'last_2_letter_frequency', 'last_3_letter_frequency', 'middle_3_letter_frequency', 'unattempted_letters_frequency_score']
-df = ed.generate_enriched_options(wordle.letter_lists)[dimensions].sort_values(by='unattempted_letters_frequency_score',ascending=False) # unattempted_letters_frequency_score
+df = ed.generate_enriched_options(wordle.letter_lists)[dimensions].sort_values(by=['unattempted_letters_frequency_score','unattempted_letters_frequency_score'],ascending=[False,False]) # unattempted_letters_frequency_score
 wordle.letter_lists
 # first guess
 df.loc[df['unattempted_letters_frequency_score']>0.35].sort_values(by='last_2_letter_frequency',ascending=False)[:50].sample(1).index[0]
@@ -132,7 +151,6 @@ wordle.letter_lists
 
 
 wordlist = pd.Series(ed.generate_options(wordle.letter_lists).index,name='wordlist')
-ed.generate_options(wordle.letter_lists)[['word_frequency_rank']].merge()
 
 pd.DataFrame(index=wordlist)
 word_df = pd.DataFrame(index=ed.generate_options(wordle.letter_lists).index)
