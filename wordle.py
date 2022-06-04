@@ -1,9 +1,11 @@
 '''
 To do (Game class)
-- make guesses when answer not known (might mean moving parts of evaluate_guess into submit_guess)
+- 
 - handle exception when no options appear to exist
 - make it work for double letters (e.g. abbey) https://nerdschalk.com/wordle-same-letter-twice-rules-explained-how-does-it-work/
-- calculate potential information value based on the other options in the list (i.e. what letter applies to most of them)
+  - guessing "occur" when the answer is "scour" puts the 2nd "c" on the yellow list 
+  - guessing 'lease' when the answer is 'phase' currently evaluates that the first 'e' is somewhere else in the answer - but the 2nd e takes that slot
+- remove proper nouns from word list
 - improve guessing algorithm
   - [ML approach] make a dumb random guessing method, use this to build a dataset and capture all the dimensions relating to the choice that could feed a model (e.g. number of possible choices with that ending, number of letters known so far, guess number)
 
@@ -23,9 +25,28 @@ Analysis to do
 '''
 
 
+ans = 'enter'
+guess = 'hench'
+greens = wordle.letter_lists['green']
+yellows = 
+[green[x for x in greens if greens[x] == ''] # unguessed greens
+
+# Check your answer for greens & produce "answer - greens"
+# Run through remaining guess letters - if you hit a yellow, update "answer - greens - yellows"
+# 
+
+guess[2]
+ans[2]
 
 
 
+for i,letter in enumerate(ans):
+    print(i,letter)
+    greens[i]
+
+
+
+# is the letter i guessed in the list of correct unguessed letters?
 
 
 import wordle_data
@@ -34,6 +55,7 @@ import numpy as np
 from importlib import reload 
 import guesser
 import game
+import random
 
 # Guesser = guesser.Guesser
 # Game = game.Game
@@ -48,19 +70,75 @@ manual_game = {
     'grey': set('nir')
     }
 
-wordle = game.Game('phase')
-ed = guesser.Guesser()
-wordle.submit_guess('dense')
-ed.generate_options(wordle.letter_lists)
-ed.generate_enriched_options(wordle.letter_lists)
-df = ed.generate_enriched_options(wordle.letter_lists).iloc[:,-5:].sort_values(by='unattempted_letters_frequency_score',ascending=False) # unattempted_letters_frequency_score
+### attempting to codify logic
+## answer = "Phase"
+# 1. first attempt is just about getting information - go for high frequency score coupled with common 2 letter ending --> hater
+# 2. that gets us down to 48 options. 15% of these have the same 2-letter ending, which contains a letter that hasn't been tried.
+#    ** to do ** add logic to check if last N letters contain unattempted letters 
+#    take the most common 2 ending and the one within that with the highest letter frequency score --> lease
+# 3. this narrows it down to just 2 options: chase and phase. Phase has a higher word frequency, so go with it?
 
-dimensions = ['word_frequency_rank','count_unattempted_letters', 'last_2_letter_frequency', 'last_3_letter_frequency', 'middle_3_letter_frequency', 'unattempted_letters_frequency_score']
-ed.generate_options(wordle.letter_lists)
+# answer = "Caulk"
+# 1. went with "alien"
+# 2. down to 166 options (95% eliminated). 14% have the same last 2 letters, and royal has both the highest unattempted letter
+#    frequency and the highest word frequency rank --> "royal"
+# 3. down to 42 options (75% eliminated). 12% have the same middle 3 letters (and the same last 2 letters). This is 
+#    exceptionally high, so go with this. "Paula" has the highest letter frequency score, but it's a proper noun.
+#    "fault" has the highest word frequency, but "sault" has highest letter frequency score --> "sault"
+#    ** implicit decision ** 42 options where there are still lots of different word structures is too risky to guess at a "common word" (is "common word" even a good strategy?)
+# 4. down to 2 options (95% eliminated): "paula" is one of the options, ignore as it's a proper noun --> "caulk"
+
+# answer = ?
+# 1. randomly guessed "clear"
+# 2. down to 3 options!! (scour, incur, occur). occur is most common and if we get it wrong we will still know what the right answer is.
+# 
+
+# prep to get stats about each guess attempt
+cols = list(ed.generate_enriched_options(wordle.letter_lists).iloc[:,-4:].columns)
+std_cols = [x+'_std' for x in cols]
+max_cols = [x+'_max' for x in cols]
+stats_df = pd.DataFrame(columns=(std_cols + max_cols + ['count_options']))
+
+
+def update_stats_df():
+    stats_df.loc[wordle.current_round] = np.nan
+    stats_df.loc[wordle.current_round,std_cols] = np.std(ed.generate_enriched_options(wordle.letter_lists)[cols],axis=0).values
+    stats_df.loc[wordle.current_round][max_cols] = np.max(ed.generate_enriched_options(wordle.letter_lists)[cols],axis=0).values
+    stats_df.loc[wordle.current_round]['count_options'] = len(ed.generate_options(wordle.letter_lists))
+
+update_stats_df()
+stats_df.transpose()
+
+random.choice(['point','graze','faint','scour','bring','sting','upend'])
+
+wordle = game.Game(random.choice(['point','graze','faint','scour','bring','sting','upend']))
+ed = guesser.Guesser()
+wordle.letter_lists
+wordle.guesses
+wordle.submit_guess('clear')
+update_stats_df()
+wordle.submit_guess('occur')
+update_stats_df()
+wordle.submit_guess('')
+update_stats_df()
+
+stats_df.transpose()
 ed.generate_enriched_options(wordle.letter_lists)
+
+dimensions = ['unattempted_letters','word_frequency_rank','count_unattempted_letters', 'last_2_letter_frequency', 'last_3_letter_frequency', 'middle_3_letter_frequency', 'unattempted_letters_frequency_score']
+df = ed.generate_enriched_options(wordle.letter_lists)[dimensions].sort_values(by='unattempted_letters_frequency_score',ascending=False) # unattempted_letters_frequency_score
+wordle.letter_lists
+# first guess
+df.loc[df['unattempted_letters_frequency_score']>0.35].sort_values(by='last_2_letter_frequency',ascending=False)[:50].sample(1).index[0]
+# 2nd guess
+df.sort_values(by=['last_2_letter_frequency','unattempted_letters_frequency_score'],ascending=[False,False])[dimensions][:20]
+# 3rd guess
+df.sort_values(by=['middle_3_letter_frequency','unattempted_letters_frequency_score'],ascending=[False,False])[dimensions][:20]
+
 df.sort_values(by='last_2_letter_frequency',ascending=False)[:30]
 df.loc[df['unattempted_letters_frequency_score']>0.34].sort_values(by='middle_3_letter_frequency',ascending=False)[:30]
-np.std(ed.generate_enriched_options(wordle.letter_lists).iloc[:,-5:],axis=0)
+
+
 
 df = ed.generate_enriched_options(wordle.letter_lists)
 df[['last_2_letters']].merge(pd.DataFrame(df['last_2_letters'].value_counts(normalize=True)),left_on='last_2_letters',right_index=True).iloc[:,2]
