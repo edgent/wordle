@@ -4,7 +4,8 @@ import pandas as pd
 import scipy.stats as stats
 import itertools
 import numpy as np
-not_words = ['solon','somal','paula',"can't",'tracy','sarah','qatar','helen','perez','omaha','caleb','colby',"we'll",'damon','draco','stacy','alice',"don't",'benny']
+not_words = ['solon','somal','paula',"can't",'tracy','sarah','qatar','helen','perez',
+'omaha','caleb','colby',"we'll",'damon','draco','stacy','alice',"don't",'benny','tyler']
 
 def generate_wordle_data():
     words = english_words.english_words_lower_set
