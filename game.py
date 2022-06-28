@@ -1,4 +1,5 @@
 from guesser import Guesser
+from wordle_data import import_wordle_data
 
 class Game:
     def __init__(self, answer) -> None:
@@ -15,7 +16,9 @@ class Game:
             'grey':set() # going to be a set
         }
         self.guesses = {x:'' for x in range(6)} # empty dictionary keys 1 to 5 to populate with guesses - effectively the game board
-
+        self.wordle_data = import_wordle_data()
+        if answer not in self.wordle_data.index:
+            print("Warning - answer not in the database so it won't be possible to guess")
     
 
     def evaluate_guess(self, word):
@@ -56,29 +59,6 @@ class Game:
                 if letter not in self.letter_lists['yellow']: # if we have the same letter twice (e.g. "o" in "solon" when trying to get "scour"), we don't want it to reach the grey list
                     self.letter_lists['grey'].add(letter)
 
-        ##### this block was removed on 4/06/22 and replaced with above. leaving temporarily in case needed.
-        # for i in range(len(self.answer)):
-        #     letter = word[i]
-        #     # for an exact match, update green list and remove from yellows if it came from there
-        #     if self.answer[i] == letter:
-        #         print(f'{letter} is a match')
-        #         self.letter_lists['green'][i] = letter
-        #         # if a yellow turns into a green, remove it from the yellow list
-        #         if letter in self.letter_lists['yellow']:
-        #             self.letter_lists['yellow'].remove(letter)
-        #     # yellow matches
-        #     elif letter in self.answer:
-        #         print(f'{letter} is somewhere else in the answer')
-        #         self.letter_lists['yellow'].add(letter)
-        #         try:
-        #             self.letter_lists['yellow_position_history'][i].append(letter)
-        #         except:
-        #             self.letter_lists['yellow_position_history'][i] = [letter]
-            
-        #     else:
-        #         print(f'{letter} is not in the answer')
-        #         self.letter_lists['grey'].add(letter)
-
         # checking if the game is won
         if list(self.letter_lists['green'].values()) == list(self.answer):
             self.game_won = True
@@ -102,10 +82,7 @@ class Game:
         print(f'Guess "{word}" submitted')
         self.evaluate_guess(word)
 
-    def autoplay_single_round(
-        self
-        # ,Guesser # a Guesser class which we will instantiate and use to make guesses
-    ):
+    def autoplay_single_round(self):
         auto = Guesser() # imported globally at the top
         # play first round
         if True in [self.game_lost, self.game_won]:
@@ -116,7 +93,7 @@ class Game:
         # else:
         #     self.submit_guess(auto.generate_guess(self.letter_lists))
         
-        # v2: if fewer then 5, go by popularity. If 2nd go, go by last 2 letters. If 3rd go, go by middle 3. 
+        # v2: if fewer then 5, go by popularity. If 2nd go, go by last 2 letters. If 3rd go, go by middle 3. else go by letter frequency score.
         elif len(auto.generate_options(self.letter_lists)) <= 5:
             self.submit_guess(
                 auto.generate_guess(self.letter_lists,method='word_frequency_rank')
@@ -128,10 +105,7 @@ class Game:
         else:
             self.submit_guess(auto.generate_guess(self.letter_lists,method='letter_frequency'))
 
-    def autoplay_whole_game(
-        self 
-        #, Guesser
-    ):
+    def autoplay_whole_game(self):
         while self.game_lost == False and self.game_won == False:
             self.autoplay_single_round()
         else:
