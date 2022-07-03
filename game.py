@@ -36,7 +36,9 @@ class Game:
         # greens 
         for i, letter in enumerate(word):
             # letter = guess_dic[i]
-            if letter == self.answer[i]:
+            if self.answer == '': # inefficient way to handle a game with no answer - ideally don't want to waste time looping here
+                continue 
+            elif letter == self.answer[i]:
                 self.letter_lists['green'][i] = letter
                 if letter in self.letter_lists['yellow']:
                     self.letter_lists['yellow'].remove(letter)
