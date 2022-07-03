@@ -1,5 +1,7 @@
 '''
 To do (Game class)
+- make everything run without Pandas errors and without printing logs as it goes
+- validation on inputs (e.g. text, 5 letters)
 - auto-generate yellow set from the yellow history list
 - word stuff:
   - remove proper nouns and punctuation from word list
