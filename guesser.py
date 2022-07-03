@@ -2,6 +2,11 @@ from wordle_data import import_wordle_data
 import pandas as pd
 import numpy as np
 
+'''
+To do:
+- update generate_guess function to sort by last 2 or 3 letters; middle 3 letters
+'''
+
 class Guesser:
     def __init__(self) -> None:
         self.wordle_data = import_wordle_data()
@@ -97,7 +102,7 @@ class Guesser:
         word_df['unattempted_letters_frequency_score'] = word_df['unattempted_letters'].apply(lambda x: sum([letter_freqs[letter] for letter in x]))
         return word_df
 
-    def generate_guess(self,letter_list_dictionary,method='last_2_letters',sample_n=1):
+    def generate_guess(self,letter_list_dictionary,method=None,sample_n=1):
         options_df = self.generate_enriched_options(letter_list_dictionary)
         if len(options_df) == 0:
             print('No options found')
