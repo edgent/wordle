@@ -1,3 +1,6 @@
+# developed using this guide https://realpython.com/python-web-applications/#escape-user-input
+# deployed using this guide https://realpython.com/flask-by-example-part-1-project-setup/
+
 '''
 To do:
 - validate input (1 character, lower case)
