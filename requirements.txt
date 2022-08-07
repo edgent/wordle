@@ -4,6 +4,7 @@ english-words==1.1.0
 Flask==2.2.1
 fonttools==4.33.3
 ftfy==6.1.1
+gunicorn==20.1.0
 importlib-metadata==4.12.0
 itsdangerous==2.1.2
 Jinja2==3.1.2
