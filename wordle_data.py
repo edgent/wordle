@@ -4,12 +4,21 @@ import pandas as pd
 import scipy.stats as stats
 import itertools
 import numpy as np
+
+# words in the 'english_words' package which shouldn't be used for guesses (generally proper nouns)
 not_words = ['solon','somal','paula',"can't",'tracy','sarah','qatar','helen','perez',
 'omaha','caleb','colby',"we'll",'damon','draco','stacy','alice',"don't",'benny','tyler']
 
+# words missing from the 'english_words' package (generally from Wordle games where I wasn't able to generate a guess)
+missing_words = ['tiara', 'gamer', 'homer', 'heist', 'fewer', 'trope', 'lowly', 'renew',
+  'trove', 'humor', 'wrung', 'favor', 'rebus', 'using', 'masse', 'surer', 'finer', 'badly', 
+  'fixer', 'duchy', 'pulpy', 'boozy', 'enema', 'jaunt', 'kebab', 'moult', 'labor', 'loopy', 
+  'golem', 'goner', 'biome', 'wooer', 'flume', 'unmet', 'repay', 'sower', 'outdo', 'unfed', 
+  'floss', 'batty', 'react', 'humph', 'sissy', 'rebut','unfit']
+
 def generate_wordle_data():
     words = english_words.english_words_lower_set
-    words_len5 = [word for word in words if len(word) == 5 and word not in not_words]
+    words_len5 = [word for word in words if len(word) == 5 and word not in not_words] + missing_words
     
     df = pd.DataFrame(columns=[x for x in range(5)]) # 5 columns for each letter in the answer
     for word in words_len5:
